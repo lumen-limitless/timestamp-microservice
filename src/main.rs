@@ -56,12 +56,18 @@ async fn now_handler() -> impl IntoResponse {
 
     Json(Response { unix, utc })
 }
+#[derive(Deserialize, Serialize)]
+struct Error {
+    error: String,
+}
 
 // handle api requests with a date string and return the unix and utc date
 async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
     match parse_date_or_timestamp(date) {
         Ok(res) => Ok(Json(res)),
-        Err(_) => Err(r#"{ error : "Invalid Date" }"#),
+        Err(_) => Err(Json(Error {
+            error: "Invalid Date".to_string(),
+        })),
     }
 }
 

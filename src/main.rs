@@ -61,7 +61,7 @@ async fn now_handler() -> impl IntoResponse {
 async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
     match parse_date_or_timestamp(date) {
         Ok(res) => Ok(Json(res)),
-        Err(_) => Err(r#"{error : "Invalid Date"}"#),
+        Err(_) => Err(r#"{ error : "Invalid Date" }"#),
     }
 }
 

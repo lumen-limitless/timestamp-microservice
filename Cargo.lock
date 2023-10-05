@@ -1949,14 +1949,10 @@ dependencies = [
  "chrono",
  "hyper",
  "serde",
- "serde_json",
  "shuttle-axum",
  "shuttle-runtime",
  "tokio",
- "tower",
  "tower-http",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

@@ -11,26 +11,11 @@ async fn axum() -> shuttle_axum::ShuttleAxum {
         .allow_methods([Method::GET, Method::POST]);
 
     let router = Router::new()
-        .route("/", get(root))
         .route("/api", get(now_handler))
-        .route("/api/:date?", get(date_handler))
+        .route("/api/:date", get(date_handler))
         .layer(cors);
 
-    // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
-    // let addr = SocketAddr::from(([127, 0, 0, 1], 8200));
-    // tracing::debug!("listening on {}", addr);
-    // axum::Server::bind(&addr)
-    //     .serve(app.into_make_service())
-    //     .await
-    //     .unwrap();
-
     Ok(router.into())
-}
-
-// basic handler that responds with a static string
-async fn root() -> &'static str {
-    "Hello, World!"
 }
 
 //handler that receive a date and return a json with the unix and utc date
@@ -62,8 +47,7 @@ struct Error {
 }
 
 // handle api requests with a date string and return the unix and utc date
-async fn date_handler(Path(date): Path<Vec<String>>) -> impl IntoResponse {
-    let date = date.join(" ");
+async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
     println!("date: {}", date);
 
     match parse_date_or_timestamp(date) {

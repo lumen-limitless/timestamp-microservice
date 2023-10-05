@@ -13,7 +13,7 @@ async fn axum() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
         .route("/", get(root))
         .route("/api", get(now_handler))
-        .route("/api/:date", get(date_handler))
+        .route("/api/:date?", get(date_handler))
         .layer(cors);
 
     // run our app with hyper
@@ -62,7 +62,10 @@ struct Error {
 }
 
 // handle api requests with a date string and return the unix and utc date
-async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
+async fn date_handler(Path(date): Path<Vec<String>>) -> impl IntoResponse {
+    let date = date.join(" ");
+    println!("date: {}", date);
+
     match parse_date_or_timestamp(date) {
         Ok(res) => Ok(Json(res)),
         Err(_) => Err(Json(Error {

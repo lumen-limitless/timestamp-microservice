@@ -78,8 +78,6 @@ fn parse_date_or_timestamp(date: String) -> anyhow::Result<Response> {
 
 // handle api requests with a date string and return the unix and utc date
 async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
-    println!("date: {}", date);
-
     match parse_date_or_timestamp(date) {
         Ok(res) => Ok(Json(res)),
         Err(_) => Err(Json(Error {

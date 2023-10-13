@@ -1,3 +1,5 @@
+use std::net::SocketAddr;
+
 use axum::{extract::Path, response::IntoResponse, routing::get, Json, Router};
 use chrono::DateTime;
 use hyper::Method;
@@ -86,16 +88,31 @@ async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
     }
 }
 
-#[shuttle_runtime::main]
-async fn axum() -> shuttle_axum::ShuttleAxum {
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST]);
+#[tokio::main]
+async fn main() {
+    // initialize tracing
+    tracing_subscriber::fmt::init();
 
-    let router = Router::new()
+    let cors = CorsLayer::new()
+        .allow_methods(vec![Method::GET])
+        .allow_origin(Any);
+
+    // build our application with a route
+    let app = Router::new()
+        // `GET /` goes to `root`
         .route("/api", get(now_handler))
         .route("/api/:date", get(date_handler))
         .layer(cors);
 
-    Ok(router.into())
+    // get the port to listen on
+    let port = std::env::var("PORT").unwrap_or("8200".to_string());
+
+    // run our app with hyper
+    // `axum::Server` is a re-export of `hyper::Server`
+    let addr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .expect("server failed");
 }

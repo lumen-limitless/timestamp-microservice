@@ -1,9 +1,8 @@
-use std::net::SocketAddr;
-
 use axum::{extract::Path, response::IntoResponse, routing::get, Json, Router};
 use chrono::DateTime;
 use hyper::Method;
 use serde::{Deserialize, Serialize};
+use std::{net::SocketAddr, str::FromStr};
 use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Deserialize, Serialize)]
@@ -102,12 +101,10 @@ async fn main() {
         .route("/api/:date", get(date_handler))
         .layer(cors);
 
-    // get the port to listen on
-    let port = std::env::var("PORT").unwrap_or("8200".to_string());
-
-    // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
-    let addr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
+    // read the port from env or use the port default port(8080)
+    let port = std::env::var("PORT").unwrap_or(String::from("8080"));
+    // convert the port to a socket address
+    let addr = SocketAddr::from_str(&format!("0.0.0.0:{}", port)).unwrap();
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

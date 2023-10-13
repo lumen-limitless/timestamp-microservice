@@ -4,21 +4,6 @@ use hyper::Method;
 use serde::{Deserialize, Serialize};
 use tower_http::cors::{Any, CorsLayer};
 
-#[shuttle_runtime::main]
-async fn axum() -> shuttle_axum::ShuttleAxum {
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST]);
-
-    let router = Router::new()
-        .route("/api", get(now_handler))
-        .route("/api/:date", get(date_handler))
-        .layer(cors);
-
-    Ok(router.into())
-}
-
-//handler that receive a date and return a json with the unix and utc date
 #[derive(Deserialize, Serialize)]
 struct Date {
     date: String,
@@ -30,7 +15,12 @@ struct Response {
     utc: String,
 }
 
-// handle empty api requests and return the current date
+#[derive(Deserialize, Serialize)]
+struct Error {
+    error: String,
+}
+
+// handle api requests without a date string and return the current unix and utc date
 async fn now_handler() -> impl IntoResponse {
     let date = chrono::Utc::now();
     let unix = date.timestamp_millis();
@@ -40,22 +30,6 @@ async fn now_handler() -> impl IntoResponse {
         .to_string();
 
     Json(Response { unix, utc })
-}
-#[derive(Deserialize, Serialize)]
-struct Error {
-    error: String,
-}
-
-// handle api requests with a date string and return the unix and utc date
-async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
-    println!("date: {}", date);
-
-    match parse_date_or_timestamp(date) {
-        Ok(res) => Ok(Json(res)),
-        Err(_) => Err(Json(Error {
-            error: "Invalid Date".to_string(),
-        })),
-    }
 }
 
 fn parse_date_or_timestamp(date: String) -> anyhow::Result<Response> {
@@ -98,4 +72,30 @@ fn parse_date_or_timestamp(date: String) -> anyhow::Result<Response> {
             }
         }
     }
+}
+
+// handle api requests with a date string and return the unix and utc date
+async fn date_handler(Path(date): Path<String>) -> impl IntoResponse {
+    println!("date: {}", date);
+
+    match parse_date_or_timestamp(date) {
+        Ok(res) => Ok(Json(res)),
+        Err(_) => Err(Json(Error {
+            error: "Invalid Date".to_string(),
+        })),
+    }
+}
+
+#[shuttle_runtime::main]
+async fn axum() -> shuttle_axum::ShuttleAxum {
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::GET, Method::POST]);
+
+    let router = Router::new()
+        .route("/api", get(now_handler))
+        .route("/api/:date", get(date_handler))
+        .layer(cors);
+
+    Ok(router.into())
 }

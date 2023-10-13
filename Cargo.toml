@@ -12,6 +12,6 @@ axum = "0.6.18"
 chrono = { version = "0.4.31", features = ["serde"] }
 hyper = "0.14.27"
 serde = { version = "1.0.188", features = ["derive"] }
-shuttle-axum = "0.28.0"
-shuttle-runtime = "0.28.0"
+shuttle-axum = "0.29.0"
+shuttle-runtime = "0.29.0"
 tokio = { version = "1.28.2", features = ["full"] }
